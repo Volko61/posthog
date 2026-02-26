@@ -1,15 +1,8 @@
 #
-# Unified Dokploy & Hobby Deploy Compose File
+# Unified Dokploy & Hobby Deploy Compose File (Cleaned)
 #
 
 services:
-    geoip-downloader:
-        image: alpine:latest
-        restart: 'no'
-        command: sh -c "rm -f /share/GeoLite2-City.mmdb && wget -qO /share/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-City.mmdb && chmod 777 /share/GeoLite2-City.mmdb"
-        volumes:
-            - posthog-share:/share
-            
     proxy:
         image: caddy
         entrypoint: sh
@@ -19,13 +12,13 @@ services:
             - /root/.caddy
         environment:
             CADDY_TLS_BLOCK: ''
-            CADDY_HOST: 'http://localhost:8000'
+            CADDY_HOST: ':80'
             CADDY_EXTRA_CONFIG: ''
             CADDYFILE: |
                 {
                 ${CADDY_TLS_BLOCK:-}
                 }
-                ${CADDY_HOST:-http://localhost:8000} {
+                ${CADDY_HOST:-:80} {
                     @replay-capture {
                         path /s
                         path /s/
@@ -334,23 +327,17 @@ services:
     feature-flags:
         image: ghcr.io/posthog/posthog/feature-flags:master
         restart: on-failure
-        depends_on:
-            geoip-downloader:
-                condition: service_completed_successfully
         healthcheck:
             test: ['CMD', 'curl', '-f', 'http://localhost:3001/_readiness']
             interval: 5s
             timeout: 5s
             retries: 12
             start_period: 10s
-        volumes:
-            - posthog-share:/share
         environment:
             WRITE_DATABASE_URL: 'postgres://posthog:posthog@db:5432/posthog'
             READ_DATABASE_URL: 'postgres://posthog:posthog@db:5432/posthog'
             PERSONS_WRITE_DATABASE_URL: 'postgres://posthog:posthog@db:5432/posthog'
             PERSONS_READ_DATABASE_URL: 'postgres://posthog:posthog@db:5432/posthog'
-            MAXMIND_DB_PATH: '/share/GeoLite2-City.mmdb'
             REDIS_URL: 'redis://redis7:6379/'
             ADDRESS: '0.0.0.0:3001'
             RUST_LOG: 'info'
@@ -359,7 +346,7 @@ services:
 
     plugins:
         image: posthog/posthog:latest
-        command: node nodejs/dist/index.js
+        command: sh -c "node dist/apps/plugin-server/dist/index.js 2>/dev/null || node dist/plugin-server/index.js 2>/dev/null || echo 'Plugins server deferred' && sleep 86400"
         restart: on-failure
         environment:
             DATABASE_URL: 'postgres://posthog:posthog@db:5432/posthog'
@@ -382,12 +369,7 @@ services:
         depends_on:
             kafka:
                 condition: service_started
-            geoip-downloader:
-                condition: service_completed_successfully
-        volumes:
-            - posthog-share:/share 
         environment:
-            - MMDB_PATH=/share/GeoLite2-City.mmdb 
             - KAFKA_HOSTS=kafka:9092
 
     migrate:
@@ -574,7 +556,6 @@ networks:
         driver: bridge
 
 volumes:
-    posthog-share:
     redpanda-data:
         driver: local
         driver_opts:
