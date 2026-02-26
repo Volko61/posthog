@@ -229,8 +229,8 @@ services:
         command: ./bin/docker-worker-celery --with-scheduler
         restart: on-failure
         environment: &worker_env
-            SECRET_KEY: '${SECRET_KEY}'  
-            GRANIAN_HOST: '0.0.0.0'      
+            SECRET_KEY: '${SECRET_KEY}'
+            GRANIAN_HOST: '0.0.0.0'
             OTEL_SDK_DISABLED: 'true'
             DISABLE_SECURE_SSL_REDIRECT: 'true'
             IS_BEHIND_PROXY: 'true'
@@ -326,7 +326,7 @@ services:
 
     feature-flags:
         image: ghcr.io/posthog/posthog/feature-flags:master
-        restart: on-failure  
+        restart: on-failure
         healthcheck:
             test: ['CMD', 'curl', '-f', 'http://localhost:3001/_readiness']
             interval: 5s
@@ -348,7 +348,7 @@ services:
 
     plugins:
         image: posthog/posthog:latest
-        command: sh -c "cd /code/plugin-server && yarn start" 
+        command: sh -c "cd /code/plugin-server && yarn start"
         restart: on-failure
         environment:
             DATABASE_URL: 'postgres://posthog:posthog@db:5432/posthog'
@@ -372,7 +372,7 @@ services:
             kafka:
                 condition: service_started
         volumes:
-            - posthog-share:/share 
+            - posthog-share:/share
         environment:
             - KAFKA_HOSTS=kafka:9092
 
@@ -380,8 +380,6 @@ services:
         <<: *worker
         command: sh -c "python manage.py migrate && python manage.py migrate_clickhouse && python manage.py run_async_migrations"
         restart: on-failure
-        deploy:
-            replicas: 0
 
     asyncmigrationscheck:
         <<: *worker
@@ -562,7 +560,7 @@ networks:
         driver: bridge
 
 volumes:
-    posthog-share: 
+    posthog-share:
     redpanda-data:
         driver: local
         driver_opts:
