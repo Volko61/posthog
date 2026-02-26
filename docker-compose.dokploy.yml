@@ -4,9 +4,9 @@
 
 services:
     geoip-downloader:
-        image: curlimages/curl:latest
+        image: alpine:latest
         restart: 'no'
-        command: sh -c "curl -L -s https://mmdb.posthog.net/ -o /share/GeoLite2-City.mmdb && chmod 777 /share/GeoLite2-City.mmdb"
+        command: sh -c "wget -qO /share/GeoLite2-City.mmdb https://mmdb.posthog.net/ && chmod 777 /share/GeoLite2-City.mmdb"
         volumes:
             - posthog-share:/share
             
