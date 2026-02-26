@@ -245,6 +245,7 @@ services:
             CELERY_BROKER_URL: redis://redis7:6379
 
     worker: &worker
+        image: posthog/posthog:latest
         command: ./bin/docker-worker-celery --with-scheduler
         restart: on-failure
         environment: &worker_env
