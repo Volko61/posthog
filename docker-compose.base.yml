@@ -133,6 +133,7 @@ services:
             start_period: 10s
         volumes:
             - ./docker/postgres-init-scripts:/docker-entrypoint-initdb.d
+            - db-data:/var/lib/postgresql/data
 
     redis7:
         image: redis:7.2-alpine
@@ -143,6 +144,8 @@ services:
             interval: 3s
             timeout: 10s
             retries: 10
+        volumes:
+            - redis-data:/data
 
     clickhouse:
         #
@@ -159,6 +162,8 @@ services:
             interval: 3s
             timeout: 10s
             retries: 10
+        volumes:
+            - clickhouse-data:/var/lib/clickhouse
 
     zookeeper:
         image: zookeeper:3.7.0
@@ -212,7 +217,8 @@ services:
             MINIO_ROOT_PASSWORD: object_storage_root_password
         entrypoint: sh
         command: -c 'mkdir -p /data/posthog /data/ducklake-dev /data/ai-blobs && minio server --address ":19000" --console-address ":19001" /data' # create the 'posthog', 'ducklake-dev', and 'ai-blobs' buckets before starting the service
-
+        volumes:
+            - minio-data:/data
     objectstorage-azure:
         image: mcr.microsoft.com/azure-storage/azurite:3.35.0
         restart: on-failure
@@ -450,7 +456,7 @@ services:
         expose:
             - 9200
         volumes:
-            - /var/lib/elasticsearch/data
+            - elasticsearch-data:/var/lib/elasticsearch/data
     temporal:
         restart: on-failure
         healthcheck:
