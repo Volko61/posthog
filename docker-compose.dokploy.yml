@@ -6,11 +6,10 @@ services:
     geoip-downloader:
         image: alpine:latest
         restart: 'no'
-        # Uses a reliable, direct binary mirror to overwrite the corrupted HTML file
-        command: sh -c "wget -qO /share/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-City.mmdb && chmod 777 /share/GeoLite2-City.mmdb"
+        command: sh -c "rm -f /share/GeoLite2-City.mmdb && wget -qO /share/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-City.mmdb && chmod 777 /share/GeoLite2-City.mmdb"
         volumes:
             - posthog-share:/share
-
+            
     proxy:
         image: caddy
         entrypoint: sh
@@ -360,7 +359,7 @@ services:
 
     plugins:
         image: posthog/posthog:latest
-        command: node dist/index.js
+        command: node nodejs/dist/index.js
         restart: on-failure
         environment:
             DATABASE_URL: 'postgres://posthog:posthog@db:5432/posthog'
@@ -386,9 +385,9 @@ services:
             geoip-downloader:
                 condition: service_completed_successfully
         volumes:
-            - posthog-share:/share
+            - posthog-share:/share 
         environment:
-            - MMDB_PATH=/share/GeoLite2-City.mmdb
+            - MMDB_PATH=/share/GeoLite2-City.mmdb 
             - KAFKA_HOSTS=kafka:9092
 
     migrate:
