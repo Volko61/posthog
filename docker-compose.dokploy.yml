@@ -562,6 +562,7 @@ networks:
         driver: bridge
 
 volumes:
+    posthog-share: 
     redpanda-data:
         driver: local
         driver_opts:
