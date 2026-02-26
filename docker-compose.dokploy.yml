@@ -236,6 +236,7 @@ services:
         command: ./bin/docker-worker-celery --with-scheduler
         restart: on-failure
         environment: &worker_env
+            SKIP_SERVICE_VERSION_REQUIREMENTS: '1' # 👈 ADDED TO FIX DB VERSION ERROR
             SECRET_KEY: '${SECRET_KEY}'
             GRANIAN_HOST: '0.0.0.0'
             OTEL_SDK_DISABLED: 'true'
@@ -388,6 +389,7 @@ services:
             - posthog-share:/share
         environment:
             - KAFKA_HOSTS=kafka:9092
+            - KAFKA_BROKERS=kafka:9092 # 👈 ADDED TO FIX LIVESTREAM CRASH
             - LIVESTREAM_MMDB_PATH=/share/GeoLite2-City.mmdb
             - MMDB_PATH=/share/GeoLite2-City.mmdb
 
