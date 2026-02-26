@@ -252,6 +252,7 @@ services:
             FLAGS_REDIS_ENABLED: false
             BIND_ADDRESS: '0.0.0.0'
             PORT: '8000'
+            HOST: '0.0.0.0'
 
     web:
         <<: *worker
@@ -331,7 +332,7 @@ services:
             retries: 12
             start_period: 10s
         volumes:
-            - ./share:/share
+            - posthog-share:/share
         environment:
             WRITE_DATABASE_URL: 'postgres://posthog:posthog@db:5432/posthog'
             READ_DATABASE_URL: 'postgres://posthog:posthog@db:5432/posthog'
@@ -369,6 +370,11 @@ services:
         depends_on:
             kafka:
                 condition: service_started
+        volumes:
+            - posthog-share:/share 
+        environment:
+            - MMDB_PATH=/share/GeoLite2-City.mmdb 
+            - KAFKA_HOSTS=kafka:9092
 
     migrate:
         <<: *worker
