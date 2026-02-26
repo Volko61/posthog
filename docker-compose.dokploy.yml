@@ -473,7 +473,7 @@ services:
 
     temporal-django-worker:
         <<: *worker
-        command: ./bin/temporal-django-worker
+        command: sh -c "if [ -f ./bin/temporal-django-worker ]; then ./bin/temporal-django-worker; else echo 'Temporal not in this release'; sleep 864000; fi"        restart: on-failure
         restart: on-failure
         environment:
             <<: *worker_env
