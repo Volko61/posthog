@@ -607,3 +607,38 @@ networks:
 
 volumes:
     redpanda-data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /mnt/disk/posthog/kafka
+    db-data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /mnt/disk/posthog/postgres
+    clickhouse-data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /mnt/disk/posthog/clickhouse
+    minio-data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /mnt/disk/posthog/minio
+    redis-data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /mnt/disk/posthog/redis
+    elasticsearch-data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /mnt/disk/posthog/elasticsearch
