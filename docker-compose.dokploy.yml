@@ -250,6 +250,8 @@ services:
             DEPLOYMENT: hobby
             CDP_API_URL: 'http://plugins:6738'
             FLAGS_REDIS_ENABLED: false
+            BIND_ADDRESS: '0.0.0.0'
+            PORT: '8000'
 
     web:
         <<: *worker
