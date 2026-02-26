@@ -3,6 +3,13 @@
 #
 
 services:
+    geoip-downloader:
+        image: curlimages/curl:latest
+        restart: 'no'
+        command: sh -c "curl -L -s https://mmdb.posthog.net/ -o /share/GeoLite2-City.mmdb && chmod 777 /share/GeoLite2-City.mmdb"
+        volumes:
+            - posthog-share:/share
+            
     proxy:
         image: caddy
         entrypoint: sh
@@ -229,6 +236,8 @@ services:
         command: ./bin/docker-worker-celery --with-scheduler
         restart: on-failure
         environment: &worker_env
+            SECRET_KEY: '${SECRET_KEY}'  
+            GRANIAN_HOST: '0.0.0.0'      
             OTEL_SDK_DISABLED: 'true'
             DISABLE_SECURE_SSL_REDIRECT: 'true'
             IS_BEHIND_PROXY: 'true'
@@ -325,6 +334,9 @@ services:
     feature-flags:
         image: ghcr.io/posthog/posthog/feature-flags:master
         restart: on-failure
+        depends_on:                                         
+            geoip-downloader:                                
+                condition: service_completed_successfully   
         healthcheck:
             test: ['CMD', 'curl', '-f', 'http://localhost:3001/_readiness']
             interval: 5s
@@ -347,7 +359,7 @@ services:
 
     plugins:
         image: posthog/posthog:latest
-        command: node nodejs/dist/index.js
+        command: node plugin-server/dist/index.js
         restart: on-failure
         environment:
             DATABASE_URL: 'postgres://posthog:posthog@db:5432/posthog'
@@ -370,6 +382,8 @@ services:
         depends_on:
             kafka:
                 condition: service_started
+            geoip-downloader:                                
+                condition: service_completed_successfully
         volumes:
             - posthog-share:/share 
         environment:
