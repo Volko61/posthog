@@ -141,12 +141,16 @@ services:
     clickhouse:
         image: ${CLICKHOUSE_SERVER_IMAGE:-clickhouse/clickhouse-server:25.12.5.44}
         restart: on-failure
-        entrypoint: ["/bin/sh", "-c"]
+        entrypoint: /bin/bash
         command: 
+            - -c
             - |
-                mkdir -p /etc/clickhouse-server/config.d
-                echo "$$CLICKHOUSE_CUSTOM_CONFIG" > /etc/clickhouse-server/config.d/custom.xml
+                mkdir -p /docker-entrypoint-initdb.d
+                echo 'CREATE DATABASE IF NOT EXISTS posthog; CREATE TABLE IF NOT EXISTS posthog.infi_clickhouse_orm_migrations (package_name String, module_name String, applied_date DateTime) ENGINE = MergeTree ORDER BY (package_name, module_name);' > /docker-entrypoint-initdb.d/init.sql
                 exec /entrypoint.sh clickhouse-server
+        environment:
+            CLICKHOUSE_SKIP_USER_SETUP: 1
+            KAFKA_HOSTS: 'kafka:9092'
         healthcheck:
             test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1']
             interval: 3s
@@ -154,33 +158,6 @@ services:
             retries: 10
         volumes:
             - clickhouse-data:/var/lib/clickhouse
-        environment:
-            CLICKHOUSE_DB: posthog
-            KAFKA_HOSTS: 'kafka:9092'
-            CLICKHOUSE_CUSTOM_CONFIG: |
-                <clickhouse>
-                    <remote_servers>
-                        <posthog>
-                            <shard>
-                                <internal_replication>true</internal_replication>
-                                <replica>
-                                    <host>localhost</host>
-                                    <port>9000</port>
-                                </replica>
-                            </shard>
-                        </posthog>
-                    </remote_servers>
-                    <zookeeper>
-                        <node>
-                            <host>zookeeper</host>
-                            <port>2181</port>
-                        </node>
-                    </zookeeper>
-                    <macros>
-                        <shard>01</shard>
-                        <replica>01</replica>
-                    </macros>
-                </clickhouse>
 
     zookeeper:
         image: zookeeper:3.7.0
@@ -295,6 +272,7 @@ services:
             SITE_URL: 'https://${DOMAIN}'
             SKIP_SERVICE_VERSION_REQUIREMENTS: '1'
             TRUSTED_PROXIES: '127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'
+            CLICKHOUSE_REPLICATION: 'false'
 
     web:
         <<: *worker
